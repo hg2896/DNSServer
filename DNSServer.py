@@ -44,8 +44,8 @@ def decrypt_with_aes(encrypted_data, password, salt):
     return decrypted_data.decode('utf-8')
 
 salt = bytes("Tandon", "utf-8") # Remember it should be a byte-object
-password = bytes("hg2896@nyu.edu", "utf-8")
-input_string = bytes("AlwaysWatching", "utf-8")
+password = "hg2896@nyu.edu"
+input_string = "AlwaysWatching"
 
 encrypted_value = encrypt_with_aes(input_string, password, salt) # exfil function
 decrypted_value = decrypt_with_aes(encrypted_value, password, salt)  # exfil function
@@ -81,20 +81,22 @@ dns_records = {
 
 def run_dns_server():
     # Create a UDP socket and bind it to the local IP address (what unique IP address is used here, similar to webserver lab) and port (the standard port for DNS)
-    server_socket = socket.socket(socket.AF_INET, ????) # Research this
-    server_socket.bind((?????, ????))
+    UDP_IP = "127.0.0.1" #change to own IP
+    UDP_PORT = 53 #standard for DNS
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # Research this
+    server_socket.bind((UDP_IP, UDP_PORT))
 
     while True:
         try:
             # Wait for incoming DNS requests
             data, addr = server_socket.recvfrom(1024)
             # Parse the request using the `dns.message.from_wire` method
-            request = ?????
+            request = dns.message.from_wire[data]
             # Create a response message using the `dns.message.make_response` method
-            response = ??????
+            response = dns.message.make_response[request]
 
             # Get the question from the request
-            question = request.question[???]
+            question = request.question[0]
             qname = question.name.to_text()
             qtype = question.rdtype
 
@@ -105,12 +107,12 @@ def run_dns_server():
 
                 rdata_list = []
 
-                if qtype == dns.rdatatype.??:
+                if qtype == dns.rdatatype.MX:
                     for pref, server in answer_data:
                         rdata_list.append(MX(dns.rdataclass.IN, dns.rdatatype.MX, pref, server))
-                elif qtype == dns.rdatatype.??:
-                    ??, ??, ??, ??, ??, ??, ?? = answer_data # What is the record format? See dns_records dictionary. Assume we handle @, Class, TTL elsewhere. Do some research on SOA Records
-                    rdata = SOA(dns.rdataclass.IN, dns.rdatatype.SOA, ??, ??, ??, ??, ??, ??, ??) # follow format from previous line
+                elif qtype == dns.rdatatype.SOA:
+                    MNAME, RNAME, SERIAL, REFRESH, RETRY, EXPIRE = answer_data # What is the record format? See dns_records dictionary. Assume we handle @, Class, TTL elsewhere. Do some research on SOA Records
+                    rdata = SOA(dns.rdataclass.IN, dns.rdatatype.SOA, MNAME, RNAME, SERIAL, REFRESH, RETRY, EXPIRE) # follow format from previous line
                     rdata_list.append(rdata)
                 else:
                     if isinstance(answer_data, str):
@@ -126,7 +128,7 @@ def run_dns_server():
 
             # Send the response back to the client using the `server_socket.sendto` method and put the response to_wire(), return to the addr you received from
             print("Responding to request:", qname)
-            server_socket.??????? 
+            server_socket.send(response, addr)
         except KeyboardInterrupt:
             print('\nExiting...')
             server_socket.close()
