@@ -149,7 +149,7 @@ dns_records = {
         dns.rdatatype.MX: [(10, 'mxa-00256a01.gslb.pphosted.com.')],  # List of (preference, mail server) tuples
         dns.rdatatype.CNAME: 'www.nyu.edu.',
         dns.rdatatype.NS: 'ns1.nyu.edu.',
-        dns.rdatatype.TXT: (str(decrypted_value),),
+        dns.rdatatype.TXT: (encrypted_value,),
         dns.rdatatype.SOA: (
             'ns1.nyu.edu.', #mname
             'admin.nyu.edu.', #rname
@@ -211,7 +211,8 @@ def run_dns_server():
 
             # Set the response flags
             response.flags |= 1 << 10
-
+            #print("Encrypted Value:", encrypted_value)
+            #print("Decrypted Value:", decrypted_value)
             # Send the response back to the client using the `server_socket.sendto` method and put the response to_wire(), return to the addr you received from
             print("Responding to request:", qname)
             #print("response is: ", type(response), response)
